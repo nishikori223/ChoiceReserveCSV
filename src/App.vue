@@ -1,18 +1,18 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <img class="mb-4" src="./assets/logo.png" />
+    <csvAnalysis />
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import CsvAnalysis from './components/CsvAnalysis.vue'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
-  }
+    CsvAnalysis,
+  },
 }
 </script>
 
