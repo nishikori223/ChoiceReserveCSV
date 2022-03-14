@@ -24,15 +24,16 @@
       <tr v-for="(d, i) in dataset" :key="i">
         <td>{{ d.room }}</td>
         <td>{{ d.name }}</td>
-        <td></td>
-        <td></td>
-        <td>{{ d.total }}</td>
+        <td>{{ d.price }}</td>
+        <td>{{ d.delivery }}</td>
+        <td>{{ d.price + d.delivery }}</td>
       </tr>
     </table>
   </div>
 </template>
 
 <script>
+import Enumerable from 'linq'
 export default {
   name: 'csv',
   data() {
@@ -70,10 +71,23 @@ export default {
       for (let r of csvData) {
         const room = r['部屋番号']
         const name = r['お名前']
-        const total = r['合計金額']
+        let price = r['合計金額']
+        let delivery = 0
 
-        this.dataset.push({ room: room, name: name, total: total })
+        let data = Enumerable.from(this.dataset)
+          .where((x) => x.room == room)
+          .toArray()
+
+        if (data.length > 0) {
+          data.price = data.price + price
+        } else {
+          this.dataset.push({ room: room, name: name, price: price, delivery: delivery })
+        }
       }
+
+      this.dataset = Enumerable.from(this.dataset)
+        .orderBy((x) => x.room)
+        .toArray()
     },
   },
 }
