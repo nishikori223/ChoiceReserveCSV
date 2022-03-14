@@ -71,15 +71,16 @@ export default {
       for (let r of csvData) {
         const room = r['部屋番号']
         const name = r['お名前']
-        let price = r['合計金額']
-        let delivery = 0
+        let delivery = r['メインメニュー'].indexOf('デリバリー') > -1 ? r['予約数'] * 100 : 0
+        let price = Number(r['合計金額']) - delivery
 
         let data = Enumerable.from(this.dataset)
           .where((x) => x.room == room)
           .toArray()
 
         if (data.length > 0) {
-          data.price = data.price + price
+          data[0].price = data[0].price + price
+          data[0].delivery = data[0].delivery + delivery
         } else {
           this.dataset.push({ room: room, name: name, price: price, delivery: delivery })
         }
