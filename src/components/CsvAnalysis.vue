@@ -1,6 +1,7 @@
 <template>
   <div class="mx-auto container-fluid" style="width: 98%">
     <div
+      v-show="!isCompleted"
       class="drop_area"
       @dragenter="dragEnter"
       @dragleave="dragLeave"
@@ -10,6 +11,9 @@
     >
       CSV読み込み
     </div>
+    <h1 style="text-align: left" v-show="isCompleted">
+      <b>{{ year }}年{{ month }}月分</b>
+    </h1>
     <br />
     <table class="table table-sm table-striped table-hover no-footer">
       <thead>
@@ -40,6 +44,9 @@ export default {
     return {
       isEnter: false,
       dataset: [],
+      year: '',
+      month: '',
+      isCompleted: false,
     }
   },
   methods: {
@@ -68,9 +75,17 @@ export default {
     },
     loadData(results) {
       const csvData = results.data
+      this.year = csvData[0]['予約日'].substr(0, csvData[0]['予約日'].indexOf('/'))
+      this.month = csvData[0]['予約日'].substr(csvData[0]['予約日'].indexOf('/') + 1, 2)
       for (let r of csvData) {
         // EOFが空行の為
         if (r['予約番号']) {
+          const month = r['予約日'].substr(r['予約日'].indexOf('/') + 1, 2)
+          if (this.month != month) {
+            alert('月が跨っています。')
+            this.dataset = []
+            return
+          }
           const room = r['部屋番号']
           const name = r['お名前']
           let delivery = r['メインメニュー'].indexOf('デリバリー') > -1 ? r['予約数'] * 100 : 0
@@ -81,6 +96,9 @@ export default {
             .toArray()
 
           if (data.length > 0) {
+            if (data[0].name.indexOf(name) == -1) {
+              data[0].name = data[0].name + ',' + name
+            }
             data[0].price = data[0].price + price
             data[0].delivery = data[0].delivery + delivery
           } else {
@@ -92,6 +110,7 @@ export default {
       this.dataset = Enumerable.from(this.dataset)
         .orderBy((x) => x.room)
         .toArray()
+      this.isCompleted = true
     },
   },
 }
