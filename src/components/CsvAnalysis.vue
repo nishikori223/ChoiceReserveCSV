@@ -69,20 +69,23 @@ export default {
     loadData(results) {
       const csvData = results.data
       for (let r of csvData) {
-        const room = r['部屋番号']
-        const name = r['お名前']
-        let delivery = r['メインメニュー'].indexOf('デリバリー') > -1 ? r['予約数'] * 100 : 0
-        let price = Number(r['合計金額']) - delivery
+        // EOFが空行の為
+        if (r['予約番号']) {
+          const room = r['部屋番号']
+          const name = r['お名前']
+          let delivery = r['メインメニュー'].indexOf('デリバリー') > -1 ? r['予約数'] * 100 : 0
+          let price = Number(r['合計金額']) - delivery
 
-        let data = Enumerable.from(this.dataset)
-          .where((x) => x.room == room)
-          .toArray()
+          let data = Enumerable.from(this.dataset)
+            .where((x) => x.room == room)
+            .toArray()
 
-        if (data.length > 0) {
-          data[0].price = data[0].price + price
-          data[0].delivery = data[0].delivery + delivery
-        } else {
-          this.dataset.push({ room: room, name: name, price: price, delivery: delivery })
+          if (data.length > 0) {
+            data[0].price = data[0].price + price
+            data[0].delivery = data[0].delivery + delivery
+          } else {
+            this.dataset.push({ room: room, name: name, price: price, delivery: delivery })
+          }
         }
       }
 
