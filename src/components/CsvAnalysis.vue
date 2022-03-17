@@ -1,19 +1,26 @@
 <template>
   <div class="mx-auto container-fluid" style="width: 98%">
-    <div
-      v-show="!isCompleted"
-      class="drop_area"
-      @dragenter="dragEnter"
-      @dragleave="dragLeave"
-      @dragover="dragOver"
-      @drop.prevent="dropFile"
-      :class="{ enter: isEnter }"
-    >
-      CSV読み込み
-    </div>
-    <h1 style="text-align: left" v-show="isCompleted">
-      <b>{{ year }}年{{ month }}月分</b>
-    </h1>
+    <header class="clearfix">
+      <div
+        v-show="!isCompleted"
+        class="drop_area"
+        @dragenter="dragEnter"
+        @dragleave="dragLeave"
+        @dragover="dragOver"
+        @drop.prevent="dropFile"
+        :class="{ enter: isEnter }"
+      >
+        CSV読み込み
+      </div>
+
+      <div class="form-inline" v-show="isCompleted">
+        <h1 v-show="isCompleted">
+          <b>{{ year }}年{{ month }}月分</b>
+        </h1>
+        <b-button size="sm" variant="outline-dark" @click="csvExport">CSV保存</b-button>
+      </div>
+    </header>
+
     <br />
     <table class="table table-sm table-striped table-hover no-footer">
       <thead>
@@ -26,11 +33,11 @@
         </tr>
       </thead>
       <tr v-for="(d, i) in dataset" :key="i">
-        <td>{{ d.room }}</td>
-        <td>{{ d.name }}</td>
-        <td>{{ d.price }}</td>
-        <td>{{ d.delivery }}</td>
-        <td>{{ d.price + d.delivery }}</td>
+        <td>{{ d.部屋番号 }}</td>
+        <td>{{ d.お名前 }}</td>
+        <td>{{ d.お食事料金 }}</td>
+        <td>{{ d.デリバリー料金 }}</td>
+        <td>{{ d.合計 }}</td>
       </tr>
     </table>
   </div>
@@ -92,25 +99,41 @@ export default {
           let price = Number(r['合計金額']) - delivery
 
           let data = Enumerable.from(this.dataset)
-            .where((x) => x.room == room)
+            .where((x) => x.部屋番号 == room)
             .toArray()
 
           if (data.length > 0) {
-            if (data[0].name.indexOf(name) == -1) {
-              data[0].name = data[0].name + ',' + name
+            if (data[0].お名前.indexOf(name) == -1) {
+              data[0].お名前 = data[0].お名前 + ',' + name
             }
-            data[0].price = data[0].price + price
-            data[0].delivery = data[0].delivery + delivery
+            data[0].お食事料金 = data[0].お食事料金 + price
+            data[0].デリバリー料金 = data[0].デリバリー料金 + delivery
+            data[0].合計 = data[0].お食事料金 + data[0].デリバリー料金
           } else {
-            this.dataset.push({ room: room, name: name, price: price, delivery: delivery })
+            this.dataset.push({
+              部屋番号: room,
+              お名前: name,
+              お食事料金: price,
+              デリバリー料金: delivery,
+              合計: price + delivery,
+            })
           }
         }
       }
 
       this.dataset = Enumerable.from(this.dataset)
-        .orderBy((x) => x.room)
+        .orderBy((x) => x.部屋番号)
         .toArray()
       this.isCompleted = true
+    },
+    csvExport() {
+      const csv = this.$papa.unparse(this.dataset)
+      const bom = new Uint8Array([0xef, 0xbb, 0xbf])
+      const blob = new Blob([bom, csv], { type: 'text/csv' })
+      const link = document.createElement('a')
+      link.href = window.URL.createObjectURL(blob)
+      link.download = this.year + this.month + '.csv'
+      link.click()
     },
   },
 }
