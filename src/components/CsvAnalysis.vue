@@ -35,9 +35,9 @@
       <tr v-for="(d, i) in dataset" :key="i">
         <td>{{ d.部屋番号 }}</td>
         <td>{{ d.お名前 }}</td>
-        <td>{{ d.お食事料金 }}</td>
-        <td>{{ d.デリバリー料金 }}</td>
-        <td>{{ d.合計 }}</td>
+        <td>{{ d.お食事料金.toLocaleString() }}</td>
+        <td>{{ d.デリバリー料金.toLocaleString() }}</td>
+        <td>{{ d.合計.toLocaleString() }}</td>
       </tr>
     </table>
   </div>
@@ -81,44 +81,57 @@ export default {
       })
     },
     loadData(results) {
-      const csvData = results.data
-      this.year = csvData[0]['予約日'].substr(0, csvData[0]['予約日'].indexOf('/'))
-      this.month = csvData[0]['予約日'].substr(csvData[0]['予約日'].indexOf('/') + 1, 2)
-      for (let r of csvData) {
-        // EOFが空行の為
-        if (r['予約番号']) {
-          const month = r['予約日'].substr(r['予約日'].indexOf('/') + 1, 2)
-          if (this.month != month) {
-            alert('月が跨っています。')
-            this.dataset = []
-            return
-          }
-          const room = r['部屋番号']
-          const name = r['お名前']
-          let delivery = r['メインメニュー'].indexOf('デリバリー') > -1 ? r['予約数'] * 100 : 0
-          let price = Number(r['合計金額']) - delivery
-
-          let data = Enumerable.from(this.dataset)
-            .where((x) => x.部屋番号 == room)
-            .toArray()
-
-          if (data.length > 0) {
-            if (data[0].お名前.indexOf(name) == -1) {
-              data[0].お名前 = data[0].お名前 + ',' + name
+      try {
+        const csvData = results.data
+        this.year = csvData[0]['予約日'].substr(0, csvData[0]['予約日'].indexOf('/'))
+        this.month = csvData[0]['予約日'].substr(csvData[0]['予約日'].indexOf('/') + 1, 2)
+        for (let r of csvData) {
+          // EOFが空行の為
+          if (r['予約番号']) {
+            const month = r['予約日'].substr(r['予約日'].indexOf('/') + 1, 2)
+            if (this.month != month) {
+              alert('月が跨っています。')
+              this.dataset = []
+              return
             }
-            data[0].お食事料金 = data[0].お食事料金 + price
-            data[0].デリバリー料金 = data[0].デリバリー料金 + delivery
-            data[0].合計 = data[0].お食事料金 + data[0].デリバリー料金
-          } else {
-            this.dataset.push({
-              部屋番号: room,
-              お名前: name,
-              お食事料金: price,
-              デリバリー料金: delivery,
-              合計: price + delivery,
-            })
+            const room = r['部屋番号']
+            const name = r['お名前']
+            let delivery = r['メインメニュー'].indexOf('デリバリー') > -1 ? r['予約数'] * 100 : 0
+            let price = Number(r['合計金額']) - delivery
+
+            let data = Enumerable.from(this.dataset)
+              .where((x) => x.部屋番号 == room)
+              .toArray()
+
+            if (data.length > 0) {
+              if (data[0].お名前.indexOf(name) == -1) {
+                data[0].お名前 = data[0].お名前 + ',' + name
+              }
+              data[0].お食事料金 = data[0].お食事料金 + price
+              data[0].デリバリー料金 = data[0].デリバリー料金 + delivery
+              data[0].合計 = data[0].お食事料金 + data[0].デリバリー料金
+            } else {
+              this.dataset.push({
+                部屋番号: room,
+                お名前: name,
+                お食事料金: price,
+                デリバリー料金: delivery,
+                合計: price + delivery,
+              })
+            }
           }
         }
+        let sumPrice = Enumerable.from(this.dataset).sum((x) => x.お食事料金)
+        let sumDelivery = Enumerable.from(this.dataset).sum((x) => x.デリバリー料金)
+        this.dataset.push({
+          部屋番号: '合計',
+          お食事料金: sumPrice,
+          デリバリー料金: sumDelivery,
+          合計: sumPrice + sumDelivery,
+        })
+      } catch (e) {
+        console.log(e)
+        alert('異常が発生しました。')
       }
 
       this.dataset = Enumerable.from(this.dataset)
@@ -154,5 +167,8 @@ export default {
 }
 .enter {
   border: 10px dotted powderblue;
+}
+.bold900 {
+  font-weight: 900;
 }
 </style>
