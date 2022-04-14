@@ -69,7 +69,7 @@ export default {
     dropFile(e) {
       this.isEnter = false
       const file = e.dataTransfer.files[0]
-      if (!file.type.match('application/vnd.ms-excel') || !file.name.startsWith('reservation_')) {
+      if (!file.name.startsWith('reservation_')) {
         alert('ファイルが違います')
         return
       }
