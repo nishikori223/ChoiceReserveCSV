@@ -87,7 +87,7 @@ export default {
         this.month = csvData[0]['予約日'].substr(csvData[0]['予約日'].indexOf('/') + 1, 2)
         for (let r of csvData) {
           // EOFが空行の為
-          if (r['予約番号']) {
+          if (r['予約日']) {
             const month = r['予約日'].substr(r['予約日'].indexOf('/') + 1, 2)
             if (this.month != month) {
               alert('月が跨っています。')
@@ -96,7 +96,7 @@ export default {
             }
             const room = r['部屋番号']
             const name = r['お名前']
-            let delivery = r['メインメニュー'].indexOf('デリバリー') > -1 ? r['予約数'] * 100 : 0
+            let delivery = r['メインメニュー名'].indexOf('デリバリー') > -1 ? r['予約数'] * 100 : 0
             let price = Number(r['合計金額']) - delivery
 
             let data = Enumerable.from(this.dataset)
